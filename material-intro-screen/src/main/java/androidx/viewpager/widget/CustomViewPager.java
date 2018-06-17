@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package android.support.v4.view;
+package androidx.viewpager.widget;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -29,16 +29,21 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.SystemClock;
-import android.support.annotation.CallSuper;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.os.ParcelableCompat;
-import android.support.v4.os.ParcelableCompatCreatorCallbacks;
-import android.support.v4.view.accessibility.AccessibilityEventCompat;
-import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
-import android.support.v4.view.accessibility.AccessibilityRecordCompat;
-import android.support.v4.widget.EdgeEffectCompat;
+import androidx.annotation.CallSuper;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.os.ParcelableCompat;
+import androidx.core.os.ParcelableCompatCreatorCallbacks;
+import androidx.core.view.AccessibilityDelegateCompat;
+import androidx.core.view.MotionEventCompat;
+import androidx.core.view.VelocityTrackerCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.accessibility.AccessibilityEventCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.core.view.accessibility.AccessibilityRecordCompat;
+import androidx.core.widget.EdgeEffectCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.FocusFinder;
@@ -66,6 +71,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import androidx.customview.view.AbsSavedState;
+
 /**
  * Layout manager that allows the user to flip left and right
  * through pages of data.  You supply an implementation of a
@@ -75,8 +82,8 @@ import java.util.List;
  * which is a convenient way to supply and manage the lifecycle of each page.
  * There are standard adapters implemented for using fragments with the CustomViewPager,
  * which cover the most common use cases.  These are
- * {@link android.support.v4.app.FragmentPagerAdapter} and
- * {@link android.support.v4.app.FragmentStatePagerAdapter}; each of these
+ * {@link androidx.core.app.FragmentPagerAdapter} and
+ * {@link androidx.core.app.FragmentStatePagerAdapter}; each of these
  * classes have simple code showing how to build a full user interface
  * with them.
  *
@@ -156,7 +163,7 @@ public class CustomViewPager extends ViewGroup {
 
     private final Rect mTempRect = new Rect();
 
-    private PagerAdapter mAdapter;
+    private androidx.viewpager.widget.PagerAdapter mAdapter;
     private int mCurItem;   // Index of currently displayed page.
     private int mRestoredCurItem = -1;
     private Parcelable mRestoredAdapterState = null;
@@ -369,7 +376,7 @@ public class CustomViewPager extends ViewGroup {
          * @param newAdapter the newly set adapter
          */
         void onAdapterChanged(@NonNull CustomViewPager viewPager,
-                @Nullable PagerAdapter oldAdapter, @Nullable PagerAdapter newAdapter);
+                              @Nullable androidx.viewpager.widget.PagerAdapter oldAdapter, @Nullable androidx.viewpager.widget.PagerAdapter newAdapter);
     }
 
     /**
@@ -427,12 +434,12 @@ public class CustomViewPager extends ViewGroup {
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(this,
-                new android.support.v4.view.OnApplyWindowInsetsListener() {
+                new androidx.core.view.OnApplyWindowInsetsListener() {
                     private final Rect mTempRect = new Rect();
 
                     @Override
                     public WindowInsetsCompat onApplyWindowInsets(final View v,
-                            final WindowInsetsCompat originalInsets) {
+                                                                  final WindowInsetsCompat originalInsets) {
                         // First let the ViewPager itself try and consume them...
                         final WindowInsetsCompat applied =
                                 ViewCompat.onApplyWindowInsets(v, originalInsets);
@@ -504,7 +511,7 @@ public class CustomViewPager extends ViewGroup {
      *
      * @param adapter Adapter to use
      */
-    public void setAdapter(PagerAdapter adapter) {
+    public void setAdapter(androidx.viewpager.widget.PagerAdapter adapter) {
         if (mAdapter != null) {
             mAdapter.setViewPagerObserver(null);
             mAdapter.startUpdate(this);
@@ -519,7 +526,7 @@ public class CustomViewPager extends ViewGroup {
             scrollTo(0, 0);
         }
 
-        final PagerAdapter oldAdapter = mAdapter;
+        final androidx.viewpager.widget.PagerAdapter oldAdapter = mAdapter;
         mAdapter = adapter;
         mExpectedAdapterCount = 0;
 
@@ -569,7 +576,7 @@ public class CustomViewPager extends ViewGroup {
      *
      * @return The currently registered PagerAdapter
      */
-    public PagerAdapter getAdapter() {
+    public androidx.viewpager.widget.PagerAdapter getAdapter() {
         return mAdapter;
     }
 
@@ -1031,11 +1038,11 @@ public class CustomViewPager extends ViewGroup {
             final ItemInfo ii = mItems.get(i);
             final int newPos = mAdapter.getItemPosition(ii.object);
 
-            if (newPos == PagerAdapter.POSITION_UNCHANGED) {
+            if (newPos == androidx.viewpager.widget.PagerAdapter.POSITION_UNCHANGED) {
                 continue;
             }
 
-            if (newPos == PagerAdapter.POSITION_NONE) {
+            if (newPos == androidx.viewpager.widget.PagerAdapter.POSITION_NONE) {
                 mItems.remove(i);
                 i--;
 
@@ -2784,9 +2791,9 @@ public class CustomViewPager extends ViewGroup {
                     if (Build.VERSION.SDK_INT >= 11) {
                         // The focus finder had a bug handling FOCUS_FORWARD and FOCUS_BACKWARD
                         // before Android 3.0. Ignore the tab key on those devices.
-                        if (KeyEventCompat.hasNoModifiers(event)) {
+                        if (event.hasNoModifiers()) {
                             handled = arrowScroll(FOCUS_FORWARD);
-                        } else if (KeyEventCompat.hasModifiers(event, KeyEvent.META_SHIFT_ON)) {
+                        } else if (event.hasModifiers(KeyEvent.META_SHIFT_ON)) {
                             handled = arrowScroll(FOCUS_BACKWARD);
                         }
                     }
@@ -3008,7 +3015,7 @@ public class CustomViewPager extends ViewGroup {
     @Override
     public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event) {
         // Dispatch scroll events from this ViewPager.
-        if (event.getEventType() == AccessibilityEventCompat.TYPE_VIEW_SCROLLED) {
+        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
             return super.dispatchPopulateAccessibilityEvent(event);
         }
 
@@ -3057,7 +3064,7 @@ public class CustomViewPager extends ViewGroup {
             final AccessibilityRecordCompat recordCompat =
                     AccessibilityEventCompat.asRecord(event);
             recordCompat.setScrollable(canScroll());
-            if (event.getEventType() == AccessibilityEventCompat.TYPE_VIEW_SCROLLED
+            if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED
                     && mAdapter != null) {
                 recordCompat.setItemCount(mAdapter.getCount());
                 recordCompat.setFromIndex(mCurItem);

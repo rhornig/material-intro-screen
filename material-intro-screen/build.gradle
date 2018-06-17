@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'
+// apply plugin: 'com.novoda.bintray-release'
 apply from: '../jacoco-android.gradle'
 
 apply from: "$rootDir/versions.gradle"
@@ -14,7 +14,7 @@ android {
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -49,15 +49,16 @@ android {
     }
 
     dependencies {
-        compile fileTree(include: ['*.jar'], dir: 'libs')
-        androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        implementation fileTree(include: ['*.jar'], dir: 'libs')
+        androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0-alpha3', {
             exclude group: 'com.android.support', module: 'support-annotations'
         })
-        compile "com.android.support:appcompat-v7:${project.androidSupport}"
-        compile "com.android.support:design:${project.androidSupport}"
-        compile "com.android.support:percent:${project.androidSupport}"
+        implementation "androidx.appcompat:appcompat:${project.androidxVersion}"
+        implementation "androidx.percentlayout:percentlayout:${project.androidxVersion}"
+        implementation "com.google.android.material:material:${project.androidxVersion}"
     }
 
+    /*
     publish {
         userOrg = 'tangoagency'
         groupId = 'agency.tango.android'
@@ -66,4 +67,5 @@ android {
         desc = ''
         website = 'https://github.com/TangoAgency/material-intro-screen'
     }
+    */
 }
