@@ -1,4 +1,4 @@
-ext.minSdkVersion = 21
+ext.minSdkVersion = 19
 ext.targetSdkVersion = 28
 ext.compileSdkVersion = 28
 ext.buildToolsVersion = '27.0.3'
